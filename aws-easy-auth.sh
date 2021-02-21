@@ -1,0 +1,268 @@
+#!/bin/bash
+
+#<----------------- Global Variables ----------------->
+ROLE_ARN=$ROLE_ARN
+MFA_CODE=''
+MFA_ARN=$MFA_ARN
+AWS_REGION=$AWS_REGION
+
+
+#<----------------- Icon Variables ----------------->
+
+iconify() {
+	# will convert a given string to utf-16be which will display a nice icon for us
+	iconv -f utf-16be
+}
+
+BULLET_ICON_CODE="\x20\x23"
+BULLET_ICON=$(echo -ne "$BULLET_ICON_CODE" | iconify)
+
+CHECKMARK_ICON_CODE='\x27\x13' #checkmark UTF-8
+CHECKMARK_ICON=$(echo -ne "$CHECKMARK_ICON_CODE" | iconify)
+
+CROSSMARK_ICON_CODE='\x26\x13' #nice x UTF-8
+CROSSMARK_ICON=$(echo -ne "$CROSSMARK_ICON_CODE" | iconify)
+
+WARNING_IOCN_CODE="\x26\xA0"
+WARNING_ICON=$(echo -ne "$WARNING_IOCN_CODE" | iconify)
+
+#<----------------- Initialze Arguments ----------------->
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --role_arn|-r*)
+            if [[ "$1" != *=* ]]; then shift; fi 
+            ROLE_ARN="${1#*=}"
+            ;;
+        --mfa_code|-m*)
+            if [[ "$1" != *=* ]]; then shift; fi
+            MFA_CODE="${1#*=}"
+            ;;
+        --mfa_arn|-r*)
+            if [[ "$1" != *=* ]]; then shift; fi 
+            MFA_ARN="${1#*=}"
+            ;;
+        --aws_region|-r*)
+            if [[ "$1" != *=* ]]; then shift; fi 
+            AWS_REGION="${1#*=}"
+            ;;
+        --help|-h)
+            printf "Meaningful help message" 
+            exit 0
+            ;;
+        *)
+            >&2 printf "Error: Invalid argument\n"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+#<----------------- Utility Methods ----------------->
+myPrinter() {
+    level=$2
+    padding=$(printf '%*s' $level '')
+
+    if [ -z "$3" ]; then
+        printf "${padding// / }$1\n"
+    else
+        colorCode='\e[0m'
+        status_icon=""
+        case "$3" in 
+            error)
+                colorCode='\e[31m'
+                status_icon=$CROSSMARK_ICON
+            ;;
+            success)
+                colorCode='\e[32m'
+                status_icon=$CHECKMARK_ICON
+            ;;
+            warn)
+                colorCode='\e[38;5;220m'
+                status_icon=$WARNING_ICON
+            ;;
+            *)
+                colorCode='\e[0m'
+            ;;
+        esac
+        printf "${padding// / }$colorCode$1  $status_icon \e[0m\n"   
+    fi
+}
+
+printSectionHeader() {
+    headingActualLen=80
+    stringCount=${#1}
+    lines=$(expr $(($headingActualLen/2)) - $(($stringCount/2)))
+    headingLen=$(($lines*2 + $stringCount))
+
+    paddingLeft=$(printf '%*s' $lines '')
+    if [[ "$headingLen" > "$headingActualLen" ]]; then
+        lines=$(($lines-1))
+    fi
+    paddingRight=$(printf '%*s' $lines '')
+
+    printf "\n${paddingLeft// /=} $1 ${paddingRight// /=}\n"        
+}
+
+
+greetings() {
+    myPrinter "Welcome to AWS Easy Auth";
+}
+
+
+
+preflight_checks() {
+    printSectionHeader "Preflight Checklist"
+    myPrinter "Checking for required Evnironment variables"
+    isError=false
+
+    if ! [ -x "$(command -v aws)" ]; then
+        # echo 'Error: aws is not installed.' >&2
+        myPrinter "|$BULLET_ICON AWS CLI tools are not installed" 1 error
+        myPrinter "|- Go to this link to download the AWS CLI" 4 
+        myPrinter "https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html" 7
+        exit 1
+    else
+        myPrinter "|$BULLET_ICON AWS CLI tools are installed" 1 success
+    fi
+
+
+    if [ -z "${MFA_CODE}" ]; then
+        myPrinter "|$BULLET_ICON MFA code is not provided. Will try AWS authentication without MFA." 1 warn
+    else
+        myPrinter "|$BULLET_ICON MFA code is provided." 1 success
+        if [ -z "${MFA_ARN}" ]; then
+            myPrinter "|$BULLET_ICON MFA ARN is not provided." 1 error
+            myPrinter "|- Provide the MFA ARN by setting the env var MFA_ARN or use --mfa_arn flag" 4 
+            isError=true
+        else
+            myPrinter "|$BULLET_ICON MFA ARN is provided." 1 success
+        fi
+    fi
+
+
+    if [ -z "${ROLE_ARN}" ]; then
+        myPrinter "|$BULLET_ICON ROLE_ARN is unset or set to the empty string." 1 error
+        myPrinter "|- Provide the ROLE ARN by setting the env var ROLE_ARN or use --role_arn flag" 4 
+        isError=true
+    else
+         myPrinter "|$BULLET_ICON ROLE_ARN is provided." 1 success
+    fi
+
+
+
+    if [ -z "${AWS_REGION}" ]; then
+        myPrinter "|$BULLET_ICON AWS_REGION is unset or set to the empty string." 1 error
+        myPrinter "|- Provide the AWS REGION by setting the env var AWS_REGION or use --aws_region flag" 4 
+        isError=true
+    else
+         myPrinter "|$BULLET_ICON AWS_REGION is provided." 1 success
+    fi
+
+
+    if [ -z "${AWS_ACCESS_KEY}" ]; then
+        myPrinter "|$BULLET_ICON AWS_ACCESS_KEY is unset or set to the empty string." 1 error
+        myPrinter "|- Provide the AWS_ACCESS_KEY by setting the env var AWS_ACCESS_KEY" 4 
+        isError=true
+    else
+         myPrinter "|$BULLET_ICON AWS_ACCESS_KEY is provided." 1 success
+    fi
+
+
+
+    if [ -z "${AWS_SECRET_KEY}" ]; then
+        myPrinter "|$BULLET_ICON AWS_SECRET_KEY is unset or set to the empty string." 1 error
+        myPrinter "|- Provide the AWS_SECRET_KEY by setting the env var AWS_SECRET_KEY" 4 
+        isError=true
+    else
+         myPrinter "|$BULLET_ICON AWS_SECRET_KEY is provided." 1 success
+    fi
+
+
+    if $isError; then 
+        myPrinter "\nPlease fix the above issues to proceed."
+        exit 1 
+    fi
+
+}
+
+
+aws_configure() {
+    printSectionHeader "AWS Configuration"
+    myPrinter "Configuring AWS Credentials..."
+    aws configure set default.region "$AWS_REGION"
+    aws configure set aws_access_key_id "$AWS_ACCESS_KEY"
+    aws configure set aws_secret_access_key "$AWS_SECRET_KEY"
+    aws configure list
+}
+
+
+aws_assume_role_exports() {
+    echo "export AWS_ACCESS_KEY_ID='${KST[0]}'"
+    echo "export AWS_ACCESS_KEY='${KST[0]}'"
+    echo "export AWS_SECRET_ACCESS_KEY='${KST[1]}'"
+    echo "export AWS_SECRET_KEY='${KST[1]}'"
+    echo "export AWS_SESSION_TOKEN='${KST[2]}'"      # older var seems to work the same way
+    echo "export AWS_SECURITY_TOKEN='${KST[2]}'"
+    echo "export AWS_DELEGATION_TOKEN='${KST[2]}'"
+}
+
+aws_assume_role_helper() {
+    KST=(`aws sts assume-role --role-arn $ROLE_ARN \
+    --role-session-name easy-auth-session \
+    --query '[Credentials.AccessKeyId,Credentials.SecretAccessKey,Credentials.SessionToken]' \
+    --output text`)
+
+    aws_assume_role_exports
+}
+
+aws_assume_role_mfa_helper() {
+    KST=(`aws sts assume-role --role-arn $ROLE_ARN \
+    --role-session-name easy-auth-session \
+    --serial-number $MFA_ARN \
+    --token-code $MFA_CODE \
+    --query '[Credentials.AccessKeyId,Credentials.SecretAccessKey,Credentials.SessionToken]' \
+    --output text`)
+
+    aws_assume_role_exports
+}
+
+
+aws_assume_role_auth() {
+    printSectionHeader "AWS Auth with Assume role"
+
+    myPrinter "Clearing previous session..."
+    # Clear out existing AWS session environment, or the awscli call will fail
+    unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
+    # Old ec2 tools use other env vars
+    unset AWS_ACCESS_KEY AWS_SECRET_KEY AWS_DELEGATION_TOKEN
+
+    if [ -z "${MFA_CODE}" ]; then
+        myPrinter "Authenticating AWS without MFA..."
+        eval $(aws_assume_role_helper)
+    else
+        myPrinter "Authenticating AWS with MFA..."
+        eval $(aws_assume_role_mfa_helper)
+    fi
+
+
+    if [ -z "${AWS_SESSION_TOKEN}" ]; then
+        myPrinter "AWS Authentication Failed" 0 error
+    else 
+        myPrinter "AWS Authentication Successful" 0 success
+    fi
+
+}
+
+
+
+
+
+#<----------------- Method Calls ----------------->
+greetings
+preflight_checks
+aws_configure
+aws_assume_role_auth
+
+
+
+
