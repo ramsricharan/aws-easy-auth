@@ -8,7 +8,7 @@ Go to the following link to install the AWS CLI tools
 To install and run aws-easy-auth on your machine you need to the following setup.
 
 1. **Download the Executable**  
-        Go to the **aws-easy-auth** repos releases to pick the latest version [here](https://github.com/ramsricharan/aws-easy-auth/releases). Then either download the executables manually or run the following command.
+        Go to the **aws-easy-auth** repos releases to pick the latest version [here](https://github.com/ramsricharan/aws-easy-auth/releases). Then either download the executables manually or run the following command.  
         ``` 
         wget https://github.com/ramsricharan/aws-easy-auth/archive/{RELEASE_TAG}.zip 
         ```
