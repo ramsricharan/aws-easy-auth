@@ -15,16 +15,16 @@ iconify() {
 }
 
 BULLET_ICON_CODE="\x20\x23"
-BULLET_ICON=$(echo -ne "$BULLET_ICON_CODE" | iconify)
+BULLET_ICON=$(echo "$BULLET_ICON_CODE" | iconify)
 
 CHECKMARK_ICON_CODE='\x27\x13' #checkmark UTF-8
-CHECKMARK_ICON=$(echo -ne "$CHECKMARK_ICON_CODE" | iconify)
+CHECKMARK_ICON=$(echo "$CHECKMARK_ICON_CODE" | iconify)
 
 CROSSMARK_ICON_CODE='\x26\x13' #nice x UTF-8
-CROSSMARK_ICON=$(echo -ne "$CROSSMARK_ICON_CODE" | iconify)
+CROSSMARK_ICON=$(echo "$CROSSMARK_ICON_CODE" | iconify)
 
 WARNING_IOCN_CODE="\x26\xA0"
-WARNING_ICON=$(echo -ne "$WARNING_IOCN_CODE" | iconify)
+WARNING_ICON=$(echo "$WARNING_IOCN_CODE" | iconify)
 
 #<----------------- Initialze Arguments ----------------->
 while [ $# -gt 0 ]; do
@@ -105,14 +105,16 @@ printSectionHeader() {
 
 
 greetings() {
-    echo -e "__________       _________    __________                          _______       ___________ "
-    echo -e "___    |_ |     / /_  ___/    ___  ____/_____ ____________  __    ___    |___  ___  /___  /_  "
-    echo -e '__  /| |_ | /| / /_____ \     __  __/  _  __ `/_  ___/_  / / /    __  /| |  / / /  __/_  __ \ '
-    echo -e "_  ___ |_ |/ |/ / ____/ /     _  /___  / /_/ /_(__  )_  /_/ /     _  ___ / /_/ // /_ _  / / / "
-    echo -e "/_/  |_|___/|__/  /____/      /_____/  \__,_/ /____/ _\__, /      /_/  |_\__,_/ \__/ /_/ /_/  "
-    echo -e "                                                     /____/                                  "
+    myPrinter "__________       _________    __________                          _______       ___________ "
+    myPrinter "___    |_ |     / /_  ___/    ___  ____/_____ ____________  __    ___    |___  ___  /___  /_  "
+    myPrinter '__  /| |_ | /| / /_____ \     __  __/  _  __ `/_  ___/_  / / /    __  /| |  / / /  __/_  __ \ '
+    myPrinter "_  ___ |_ |/ |/ / ____/ /     _  /___  / /_/ /_(__  )_  /_/ /     _  ___ / /_/ // /_ _  / / / "
+    myPrinter "/_/  |_|___/|__/  /____/      /_____/  \__,_/ /____/ _\__, /      /_/  |_\__,_/ \__/ /_/ /_/  "
+    myPrinter "                                                     /____/                                  "
 
     myPrinter "Welcome to AWS Easy Auth";
+    myPrinter "Repo URL  : https://github.com/ramsricharan/aws-easy-auth" 1
+    myPrinter "Created by: Ram Taduvai" 1; 
 }
 
 
