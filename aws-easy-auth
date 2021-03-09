@@ -113,8 +113,8 @@ greetings() {
     myPrinter "                                                     /____/                                  "
 
     myPrinter "Welcome to AWS Easy Auth";
-    myPrinter "Repo URL  : https://github.com/ramsricharan/aws-easy-auth" 1
-    myPrinter "Created by: Ram Taduvai";
+    myPrinter "Repo URL  : https://github.com/ramsricharan/aws-easy-auth" 1;
+    myPrinter "Created by: Ram Taduvai" 1;
 }
 
 
