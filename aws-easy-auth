@@ -15,16 +15,16 @@ iconify() {
 }
 
 BULLET_ICON_CODE="\x20\x23"
-BULLET_ICON=$(echo "$BULLET_ICON_CODE" | iconify)
+BULLET_ICON=$(echo -ne "$BULLET_ICON_CODE" | iconify)
 
 CHECKMARK_ICON_CODE='\x27\x13' #checkmark UTF-8
-CHECKMARK_ICON=$(echo "$CHECKMARK_ICON_CODE" | iconify)
+CHECKMARK_ICON=$(echo -ne "$CHECKMARK_ICON_CODE" | iconify)
 
 CROSSMARK_ICON_CODE='\x26\x13' #nice x UTF-8
-CROSSMARK_ICON=$(echo "$CROSSMARK_ICON_CODE" | iconify)
+CROSSMARK_ICON=$(echo -ne "$CROSSMARK_ICON_CODE" | iconify)
 
 WARNING_IOCN_CODE="\x26\xA0"
-WARNING_ICON=$(echo "$WARNING_IOCN_CODE" | iconify)
+WARNING_ICON=$(echo -ne "$WARNING_IOCN_CODE" | iconify)
 
 #<----------------- Initialze Arguments ----------------->
 while [ $# -gt 0 ]; do
@@ -114,7 +114,7 @@ greetings() {
 
     myPrinter "Welcome to AWS Easy Auth";
     myPrinter "Repo URL  : https://github.com/ramsricharan/aws-easy-auth" 1
-    myPrinter "Created by: Ram Taduvai" 1; 
+    myPrinter "Created by: Ram Taduvai";
 }
 
 
